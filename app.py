@@ -8,8 +8,9 @@ from PIL import Image
 from docx import Document
 from werkzeug.utils import secure_filename
 import camelot
+import magic  # Ensure you have python-magic installed
 from docx.shared import Inches
-import magic
+
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
