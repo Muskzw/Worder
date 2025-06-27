@@ -1,14 +1,13 @@
 import uuid
+import os
 from flask import Flask, request, send_file, render_template_string, redirect, url_for, flash
 from pdf2docx import Converter
 from pdf2image import convert_from_path
-import os
 import pytesseract
 from PIL import Image
 from docx import Document
 from werkzeug.utils import secure_filename
 import camelot
-import tabula
 from docx.shared import Inches
 
 app = Flask(__name__)
@@ -217,7 +216,7 @@ def convert():
     output_path = os.path.join(UPLOAD_FOLDER, output_filename)
 
     try:
-        if filename.endswith('.pdf'):
+        if filename.lower().endswith('.pdf'):
             try:
                 # Try normal conversion first
                 cv = Converter(filepath)
@@ -238,7 +237,7 @@ def convert():
             doc = Document()
             doc.add_paragraph(text)
             doc.save(output_path)
-        elif filename.endswith('.txt'):
+        elif filename.lower().endswith('.txt'):
             with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
             doc = Document()
@@ -252,7 +251,7 @@ def convert():
 
     # After conversion, try to extract tables if the option was selected
     extract_tables = request.form.get('extract_tables') == 'yes'
-    if extract_tables:
+    if extract_tables and filename.lower().endswith('.pdf'):
         try:
             tables = camelot.read_pdf(filepath, pages='all')
             if tables:
