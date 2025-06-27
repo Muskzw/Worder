@@ -19,11 +19,14 @@ HTML_FORM = '''
 <head>
   <meta charset="UTF-8">
   <title>File to Word Converter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
       background: #f4f4f4;
       color: #222;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
       transition: background 0.3s, color 0.3s;
     }
     .dark-mode {
@@ -31,57 +34,140 @@ HTML_FORM = '''
       color: #eee;
     }
     .toggle-btn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      padding: 8px 16px;
-      background: #333;
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      padding: 10px 22px;
+      background: #222;
       color: #fff;
       border: none;
-      border-radius: 4px;
+      border-radius: 22px;
+      font-size: 1rem;
       cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: background 0.3s, color 0.3s;
+      z-index: 10;
     }
     .dark-mode .toggle-btn {
       background: #eee;
       color: #222;
     }
     .container {
-      max-width: 500px;
-      margin: 60px auto;
-      padding: 24px;
+      max-width: 420px;
+      margin: 80px auto 0 auto;
+      padding: 36px 32px 28px 32px;
       background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      text-align: center;
+      transition: background 0.3s, box-shadow 0.3s;
     }
     .dark-mode .container {
       background: #232323;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
     }
-    a { color: #0074d9; }
-    .dark-mode a { color: #66b3ff; }
+    h2 {
+      margin-top: 0;
+      font-weight: 600;
+      font-size: 1.6rem;
+      letter-spacing: 0.5px;
+    }
+    p {
+      color: #555;
+      margin-bottom: 28px;
+      font-size: 1.05rem;
+    }
+    .dark-mode p {
+      color: #bbb;
+    }
+    input[type="file"] {
+      margin: 18px 0 18px 0;
+      font-size: 1rem;
+    }
+    label, select {
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+    button[type="submit"] {
+      margin-top: 18px;
+      padding: 10px 32px;
+      background: #0074d9;
+      color: #fff;
+      border: none;
+      border-radius: 22px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: background 0.2s;
+    }
+    button[type="submit"]:hover {
+      background: #005fa3;
+    }
+    .dark-mode button[type="submit"] {
+      background: #3399ff;
+      color: #181818;
+    }
+    .dark-mode button[type="submit"]:hover {
+      background: #0074d9;
+      color: #fff;
+    }
+    ul {
+      padding-left: 0;
+      list-style: none;
+      margin: 0 0 18px 0;
+    }
+    li {
+      color: #e74c3c;
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+    a {
+      color: #0074d9;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .dark-mode a {
+      color: #66b3ff;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 18px 6vw 18px 6vw;
+        margin-top: 32px;
+      }
+      .toggle-btn {
+        top: 12px;
+        right: 12px;
+        padding: 8px 14px;
+        font-size: 0.95rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <button class="toggle-btn" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  <button class="toggle-btn" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
   <div class="container">
-    <h2>Convert File to Word (.docx)</h2>
-    <p>Upload a PDF, image, or text file and convert it to a Word document. Choose OCR language for images.</p>
+    <h2>File to Word Converter</h2>
+    <p>
+      Upload a PDF, image, or text file and convert it to a Word document.<br>
+      <span style="font-size:0.97em;">Choose OCR language for images.</span>
+    </p>
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <ul>
         {% for message in messages %}
-          <li style="color:red;">{{ message }}</li>
+          <li>{{ message }}</li>
         {% endfor %}
         </ul>
       {% endif %}
     {% endwith %}
     <form method="post" action="/convert" enctype="multipart/form-data">
-      <input type="file" name="file" required><br><br>
+      <input type="file" name="file" required><br>
       <label for="lang">OCR Language (for images):</label>
       <select name="lang" id="lang">
         <option value="eng">English</option>
         <option value="spa">Spanish</option>
-      </select><br><br>
+      </select><br>
       <button type="submit">Convert</button>
     </form>
   </div>
