@@ -25,15 +25,19 @@ HTML_FORM = '''
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      background: #f4f4f4;
+      background: linear-gradient(135deg, #e0e7ff 0%, #f4f4f4 100%);
       color: #222;
       font-family: 'Segoe UI', Arial, sans-serif;
       margin: 0;
       min-height: 100vh;
       transition: background 0.3s, color 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
     .dark-mode {
-      background: #181818;
+      background: linear-gradient(135deg, #232323 0%, #181818 100%);
       color: #eee;
     }
     .toggle-btn {
@@ -59,15 +63,19 @@ HTML_FORM = '''
       max-width: 420px;
       margin: 80px auto 0 auto;
       padding: 36px 32px 28px 32px;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      background: rgba(255,255,255,0.25);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.18);
       text-align: center;
       transition: background 0.3s, box-shadow 0.3s;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.18);
     }
     .dark-mode .container {
-      background: #232323;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+      background: rgba(35,35,35,0.45);
+      box-shadow: 0 8px 32px 0 rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.08);
     }
     h2 {
       margin-top: 0;
@@ -129,9 +137,29 @@ HTML_FORM = '''
       color: #0074d9;
       text-decoration: none;
       font-weight: 500;
+      transition: color 0.2s;
     }
     .dark-mode a {
       color: #66b3ff;
+    }
+    .success-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 36px;
+      margin-bottom: 12px;
+      padding: 24px 18px;
+      background: rgba(255,255,255,0.45);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .dark-mode .success-block {
+      background: rgba(35,35,35,0.55);
+      border: 1px solid rgba(255,255,255,0.08);
     }
     @media (max-width: 600px) {
       .container {
@@ -143,6 +171,9 @@ HTML_FORM = '''
         right: 12px;
         padding: 8px 14px;
         font-size: 0.95rem;
+      }
+      .success-block {
+        padding: 14px 4vw;
       }
     }
   </style>
@@ -198,9 +229,9 @@ def home():
     return render_template_string(
         HTML_FORM + '''
         {% if download_filename %}
-          <div style="margin-top:30px;">
-            <h3>Conversion successful!</h3>
-            <a href="{{ url_for('download', filename=download_filename) }}">Download your Word file</a>
+          <div class="success-block">
+            <h3 style="margin-bottom:12px;">✅ Conversion successful!</h3>
+            <a href="{{ url_for('download', filename=download_filename) }}" style="font-size:1.15rem;">⬇️ Download your Word file</a>
           </div>
         {% endif %}
         ''',
