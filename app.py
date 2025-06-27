@@ -9,6 +9,7 @@ from docx import Document
 from werkzeug.utils import secure_filename
 import camelot
 import tabula
+from docx.shared import Inches
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -171,6 +172,10 @@ HTML_FORM = '''
         <option value="eng">English</option>
         <option value="spa">Spanish</option>
       </select><br>
+      <label>
+        <input type="checkbox" name="extract_tables" value="yes">
+        Extract tables from PDF (experimental)
+      </label><br>
       <button type="submit">Convert</button>
     </form>
   </div>
@@ -244,6 +249,28 @@ def convert():
         if os.path.exists(filepath):
             os.remove(filepath)
         return redirect(url_for('home'))
+
+    # After conversion, try to extract tables if the option was selected
+    extract_tables = request.form.get('extract_tables') == 'yes'
+    if extract_tables:
+        try:
+            tables = camelot.read_pdf(filepath, pages='all')
+            if tables:
+                doc = Document(output_path)  # Open the already created docx
+                doc.add_page_break()
+                doc.add_heading('Extracted Tables', level=2)
+                for i, table in enumerate(tables):
+                    doc.add_paragraph(f"Table {i+1}:")
+                    data = table.df.values.tolist()
+                    rows, cols = len(data), len(data[0])
+                    table_docx = doc.add_table(rows=rows, cols=cols)
+                    for r in range(rows):
+                        for c in range(cols):
+                            table_docx.cell(r, c).text = str(data[r][c])
+                    doc.add_paragraph("")  # Space between tables
+                doc.save(output_path)
+        except Exception as e:
+            flash(f"Table extraction failed: {e}")
 
     # Remove the uploaded file after conversion
     if os.path.exists(filepath):
