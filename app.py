@@ -238,10 +238,24 @@ HTML_FORM = '''
     </div>
   </div>
   <script>
+  let progressInterval;
   function showProgress() {
     document.getElementById('progress-bar').style.display = 'block';
-    document.getElementById('bar').style.width = '60%';
-    document.getElementById('progress-text').innerText = 'Converting...';
+    let progress = 0;
+    const bar = document.getElementById('bar');
+    const progressText = document.getElementById('progress-text');
+    bar.style.width = '0%';
+    progressText.innerText = 'Converting... 0%';
+    clearInterval(progressInterval);
+    progressInterval = setInterval(() => {
+      if (progress < 90) {
+        progress += 10;
+        bar.style.width = progress + '%';
+        progressText.innerText = `Converting... ${progress}%`;
+      } else {
+        clearInterval(progressInterval);
+      }
+    }, 500);
   }
   function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
