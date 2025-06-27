@@ -194,7 +194,18 @@ HTML_FORM = '''
 
 @app.route('/')
 def home():
-    return render_template_string(HTML_FORM)
+    download_filename = request.args.get('download')
+    return render_template_string(
+        HTML_FORM + '''
+        {% if download_filename %}
+          <div style="margin-top:30px;">
+            <h3>Conversion successful!</h3>
+            <a href="{{ url_for('download', filename=download_filename) }}">Download your Word file</a>
+          </div>
+        {% endif %}
+        ''',
+        download_filename=download_filename
+    )
 
 @app.route('/convert', methods=['POST'])
 def convert():
@@ -218,12 +229,10 @@ def convert():
     try:
         if filename.lower().endswith('.pdf'):
             try:
-                # Try normal conversion first
                 cv = Converter(filepath)
                 cv.convert(output_path, start=0, end=None)
                 cv.close()
             except Exception:
-                # If conversion fails or for image-based PDFs, use OCR
                 lang = request.form.get('lang', 'eng')
                 images = convert_from_path(filepath)
                 doc = Document()
@@ -249,13 +258,12 @@ def convert():
             os.remove(filepath)
         return redirect(url_for('home'))
 
-    # After conversion, try to extract tables if the option was selected
     extract_tables = request.form.get('extract_tables') == 'yes'
     if extract_tables and filename.lower().endswith('.pdf'):
         try:
             tables = camelot.read_pdf(filepath, pages='all')
             if tables:
-                doc = Document(output_path)  # Open the already created docx
+                doc = Document(output_path)
                 doc.add_page_break()
                 doc.add_heading('Extracted Tables', level=2)
                 for i, table in enumerate(tables):
@@ -266,20 +274,16 @@ def convert():
                     for r in range(rows):
                         for c in range(cols):
                             table_docx.cell(r, c).text = str(data[r][c])
-                    doc.add_paragraph("")  # Space between tables
+                    doc.add_paragraph("")
                 doc.save(output_path)
         except Exception as e:
             flash(f"Table extraction failed: {e}")
 
-    # Remove the uploaded file after conversion
     if os.path.exists(filepath):
         os.remove(filepath)
 
-    # Show a download link instead of immediate download
-    return render_template_string('''
-        <h3>Conversion successful!</h3>
-        <a href="{{ url_for('download', filename=filename) }}">Download your Word file</a>
-    ''', filename=output_filename)
+    # Redirect to home with download link
+    return redirect(url_for('home', download=output_filename))
 
 @app.route('/download/<filename>')
 def download(filename):
