@@ -19,26 +19,82 @@ HTML_FORM = '''
 <head>
   <meta charset="UTF-8">
   <title>File to Word Converter</title>
+  <style>
+    body {
+      background: #f4f4f4;
+      color: #222;
+      font-family: Arial, sans-serif;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dark-mode {
+      background: #181818;
+      color: #eee;
+    }
+    .toggle-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 8px 16px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .dark-mode .toggle-btn {
+      background: #eee;
+      color: #222;
+    }
+    .container {
+      max-width: 500px;
+      margin: 60px auto;
+      padding: 24px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .dark-mode .container {
+      background: #232323;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    a { color: #0074d9; }
+    .dark-mode a { color: #66b3ff; }
+  </style>
 </head>
 <body>
-  <h2>Convert File to Word (.docx)</h2>
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul>
-      {% for message in messages %}
-        <li style="color:red;">{{ message }}</li>
-      {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
-  <form method="post" action="/convert" enctype="multipart/form-data">
-    <input type="file" name="file" required><br><br>
-    <select name="lang">
-      <option value="eng">English</option>
-      <option value="spa">Spanish</option>
-    </select><br><br>
-    <button type="submit">Convert</button>
-  </form>
+  <button class="toggle-btn" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  <div class="container">
+    <h2>Convert File to Word (.docx)</h2>
+    <p>Upload a PDF, image, or text file and convert it to a Word document. Choose OCR language for images.</p>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+          <li style="color:red;">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <form method="post" action="/convert" enctype="multipart/form-data">
+      <input type="file" name="file" required><br><br>
+      <label for="lang">OCR Language (for images):</label>
+      <select name="lang" id="lang">
+        <option value="eng">English</option>
+        <option value="spa">Spanish</option>
+      </select><br><br>
+      <button type="submit">Convert</button>
+    </form>
+  </div>
+  <script>
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+    // On load, set mode from localStorage
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+  </script>
 </body>
 </html>
 '''
