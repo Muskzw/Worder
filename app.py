@@ -33,6 +33,10 @@ HTML_FORM = '''
   {% endwith %}
   <form method="post" action="/convert" enctype="multipart/form-data">
     <input type="file" name="file" required><br><br>
+    <select name="lang">
+      <option value="eng">English</option>
+      <option value="spa">Spanish</option>
+    </select><br><br>
     <button type="submit">Convert</button>
   </form>
 </body>
@@ -68,7 +72,8 @@ def convert():
             cv.convert(output_path, start=0, end=None)
             cv.close()
         elif filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-            text = pytesseract.image_to_string(Image.open(filepath))
+            lang = request.form.get('lang', 'eng')
+            text = pytesseract.image_to_string(Image.open(filepath), lang=lang)
             doc = Document()
             doc.add_paragraph(text)
             doc.save(output_path)
@@ -100,8 +105,11 @@ def download(filename):
     if not os.path.exists(output_path):
         return "File not found", 404
     response = send_file(output_path, as_attachment=True)
-    # Optionally, remove the file after sending
-    # os.remove(output_path)
+    # Remove the file after sending
+    try:
+        os.remove(output_path)
+    except Exception:
+        pass
     return response
 
 if __name__ == '__main__':
