@@ -161,6 +161,27 @@ HTML_FORM = '''
       background: rgba(35,35,35,0.55);
       border: 1px solid rgba(255,255,255,0.08);
     }
+    #progress-bar {
+      display: none;
+      margin: 20px 0;
+    }
+    #progress-bar div {
+      width: 100%;
+      background: #e0e0e0;
+      border-radius: 8px;
+    }
+    #bar {
+      width: 0%;
+      height: 18px;
+      background: #0074d9;
+      border-radius: 8px;
+      transition: width 0.4s;
+    }
+    #progress-text {
+      text-align: center;
+      margin-top: 6px;
+      color: #555;
+    }
     @media (max-width: 600px) {
       .container {
         padding: 18px 6vw 18px 6vw;
@@ -208,6 +229,12 @@ HTML_FORM = '''
       </label><br>
       <button type="submit">Convert</button>
     </form>
+    <div id="progress-bar">
+      <div style="width:100%;background:#e0e0e0;border-radius:8px;">
+        <div id="bar" style="width:0%;height:18px;background:#0074d9;border-radius:8px;transition:width 0.4s;"></div>
+      </div>
+      <div style="text-align:center;margin-top:6px;color:#555;" id="progress-text">Converting...</div>
+    </div>
   </div>
   <script>
     function toggleDarkMode() {
