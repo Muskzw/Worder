@@ -237,14 +237,19 @@ HTML_FORM = '''
     </div>
   </div>
   <script>
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-    }
-    // On load, set mode from localStorage
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('dark-mode');
-    }
+  function showProgress() {
+    document.getElementById('progress-bar').style.display = 'block';
+    document.getElementById('bar').style.width = '60%';
+    document.getElementById('progress-text').innerText = 'Converting...';
+  }
+  function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+  }
+  // On load, set mode from localStorage
+  if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+  }
   </script>
 </body>
 </html>
