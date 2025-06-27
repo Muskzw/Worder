@@ -351,11 +351,14 @@ def convert():
 
 @app.route('/download/<filename>')
 def download(filename):
-    output_path = os.path.join(UPLOAD_FOLDER, filename)
-    if not os.path.exists(output_path):
+    # Find the file with the unique_id prefix
+    for f in os.listdir(UPLOAD_FOLDER):
+        if f.endswith(filename):
+            output_path = os.path.join(UPLOAD_FOLDER, f)
+            break
+    else:
         return "File not found", 404
-    response = send_file(output_path, as_attachment=True)
-    # Remove the file after sending
+    response = send_file(output_path, as_attachment=True, download_name=filename)
     try:
         os.remove(output_path)
     except Exception:
