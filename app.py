@@ -9,6 +9,7 @@ from docx import Document
 from werkzeug.utils import secure_filename
 import camelot
 from docx.shared import Inches
+import magic
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -285,6 +286,14 @@ def convert():
     unique_id = str(uuid.uuid4())
     filepath = os.path.join(UPLOAD_FOLDER, unique_id + "_" + filename)
     uploaded_file.save(filepath)
+
+    # Detect MIME type
+    mime_type = magic.from_file(filepath, mime=True)
+    allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 'text/plain']
+    if mime_type not in allowed_types:
+        flash(f"Unsupported file type: {mime_type}")
+        os.remove(filepath)
+        return redirect(url_for('home'))
 
     base_name = os.path.splitext(filename)[0]
     output_filename = base_name + ".docx"
