@@ -216,7 +216,7 @@ HTML_FORM = '''
         </ul>
       {% endif %}
     {% endwith %}
-    <form method="post" action="/convert" enctype="multipart/form-data">
+    <form method="post" action="/convert" enctype="multipart/form-data" onsubmit="showProgress()">
       <input type="file" name="file" required><br>
       <label for="lang">OCR Language (for images):</label>
       <select name="lang" id="lang">
