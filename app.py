@@ -286,8 +286,9 @@ def convert():
     filepath = os.path.join(UPLOAD_FOLDER, unique_id + "_" + filename)
     uploaded_file.save(filepath)
 
-    output_filename = unique_id + "_converted.docx"
-    output_path = os.path.join(UPLOAD_FOLDER, output_filename)
+    base_name = os.path.splitext(filename)[0]
+    output_filename = base_name + ".docx"
+    output_path = os.path.join(UPLOAD_FOLDER, unique_id + "_" + output_filename)
 
     try:
         if filename.lower().endswith('.pdf'):
