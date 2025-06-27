@@ -251,6 +251,16 @@ HTML_FORM = '''
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark-mode');
   }
+
+  // File size validation
+  document.querySelector('form').addEventListener('submit', function(e) {
+    const fileInput = document.querySelector('input[type="file"]');
+    const maxSize = 10 * 1024 * 1024; // 10 MB
+    if (fileInput.files[0].size > maxSize) {
+      alert("File exceeds 10 MB limit.");
+      e.preventDefault();
+    }
+  });
   </script>
 </body>
 </html>
