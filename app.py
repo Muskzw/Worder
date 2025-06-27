@@ -1,11 +1,14 @@
 import uuid
 from flask import Flask, request, send_file, render_template_string, redirect, url_for, flash
 from pdf2docx import Converter
+from pdf2image import convert_from_path
 import os
 import pytesseract
 from PIL import Image
 from docx import Document
 from werkzeug.utils import secure_filename
+import camelot
+import tabula
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -210,9 +213,20 @@ def convert():
 
     try:
         if filename.endswith('.pdf'):
-            cv = Converter(filepath)
-            cv.convert(output_path, start=0, end=None)
-            cv.close()
+            try:
+                # Try normal conversion first
+                cv = Converter(filepath)
+                cv.convert(output_path, start=0, end=None)
+                cv.close()
+            except Exception:
+                # If conversion fails or for image-based PDFs, use OCR
+                lang = request.form.get('lang', 'eng')
+                images = convert_from_path(filepath)
+                doc = Document()
+                for img in images:
+                    text = pytesseract.image_to_string(img, lang=lang)
+                    doc.add_paragraph(text)
+                doc.save(output_path)
         elif filename.lower().endswith(('.png', '.jpg', '.jpeg')):
             lang = request.form.get('lang', 'eng')
             text = pytesseract.image_to_string(Image.open(filepath), lang=lang)
