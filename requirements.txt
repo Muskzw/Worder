@@ -1,5 +1,8 @@
 Flask
 pdf2docx
+pdf2image
 python-docx
 pytesseract
 Pillow
+werkzeug
+camelot-py[cv]

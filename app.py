@@ -8,7 +8,7 @@ from PIL import Image
 from docx import Document
 from werkzeug.utils import secure_filename
 import camelot
-import magic  # Ensure you have python-magic installed
+# Removed magic dependency for Windows compatibility
 from docx.shared import Inches
 
 
@@ -17,6 +17,9 @@ UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB limit
 app.secret_key = 'your_secret_key'  # Needed for flashing messages
+
+# Configure Tesseract path for Windows (if needed)
+# pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 HTML_FORM = '''
 <!DOCTYPE html>
@@ -281,6 +284,10 @@ HTML_FORM = '''
 </html>
 '''
 
+@app.route('/health')
+def health():
+    return {'status': 'healthy', 'message': 'Worder is running!'}
+
 @app.route('/')
 def home():
     download_filename = request.args.get('download')
@@ -312,11 +319,11 @@ def convert():
     filepath = os.path.join(UPLOAD_FOLDER, unique_id + "_" + filename)
     uploaded_file.save(filepath)
 
-    # Detect MIME type
-    mime_type = magic.from_file(filepath, mime=True)
-    allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 'text/plain']
-    if mime_type not in allowed_types:
-        flash(f"Unsupported file type: {mime_type}")
+    # File type validation based on extension (more reliable on Windows)
+    file_ext = filename.lower().split('.')[-1]
+    allowed_extensions = ['pdf', 'png', 'jpg', 'jpeg', 'txt']
+    if file_ext not in allowed_extensions:
+        flash(f"Unsupported file type: .{file_ext}")
         os.remove(filepath)
         return redirect(url_for('home'))
 
@@ -327,29 +334,59 @@ def convert():
     try:
         if filename.lower().endswith('.pdf'):
             try:
+                # Try direct PDF to DOCX conversion first
                 cv = Converter(filepath)
                 cv.convert(output_path, start=0, end=None)
                 cv.close()
-            except Exception:
-                lang = request.form.get('lang', 'eng')
-                images = convert_from_path(filepath)
-                doc = Document()
-                for img in images:
-                    text = pytesseract.image_to_string(img, lang=lang)
-                    doc.add_paragraph(text)
-                doc.save(output_path)
+                flash("PDF converted successfully using direct conversion")
+            except Exception as e:
+                # Fallback to OCR if direct conversion fails
+                try:
+                    lang = request.form.get('lang', 'eng')
+                    images = convert_from_path(filepath)
+                    doc = Document()
+                    for i, img in enumerate(images):
+                        text = pytesseract.image_to_string(img, lang=lang)
+                        if text.strip():  # Only add non-empty text
+                            doc.add_paragraph(f"Page {i+1}:")
+                            doc.add_paragraph(text)
+                    doc.save(output_path)
+                    flash("PDF converted using OCR (scanned document)")
+                except Exception as ocr_error:
+                    raise Exception(f"Both direct conversion and OCR failed: {str(ocr_error)}")
         elif filename.lower().endswith(('.png', '.jpg', '.jpeg')):
             lang = request.form.get('lang', 'eng')
-            text = pytesseract.image_to_string(Image.open(filepath), lang=lang)
-            doc = Document()
-            doc.add_paragraph(text)
-            doc.save(output_path)
+            try:
+                text = pytesseract.image_to_string(Image.open(filepath), lang=lang)
+                doc = Document()
+                if text.strip():
+                    doc.add_paragraph(text)
+                    flash("Image converted successfully using OCR")
+                else:
+                    doc.add_paragraph("No text detected in the image. Please check image quality and language settings.")
+                    flash("No text detected in image")
+                doc.save(output_path)
+            except Exception as img_error:
+                raise Exception(f"Image OCR failed: {str(img_error)}")
         elif filename.lower().endswith('.txt'):
-            with open(filepath, 'r', encoding='utf-8') as f:
-                content = f.read()
-            doc = Document()
-            doc.add_paragraph(content)
-            doc.save(output_path)
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                doc = Document()
+                doc.add_paragraph(content)
+                doc.save(output_path)
+                flash("Text file converted successfully")
+            except UnicodeDecodeError:
+                # Try with different encoding
+                try:
+                    with open(filepath, 'r', encoding='latin-1') as f:
+                        content = f.read()
+                    doc = Document()
+                    doc.add_paragraph(content)
+                    doc.save(output_path)
+                    flash("Text file converted successfully (using fallback encoding)")
+                except Exception as txt_error:
+                    raise Exception(f"Text file conversion failed: {str(txt_error)}")
     except Exception as e:
         flash(f"Conversion failed: {e}")
         if os.path.exists(filepath):
@@ -365,15 +402,20 @@ def convert():
                 doc.add_page_break()
                 doc.add_heading('Extracted Tables', level=2)
                 for i, table in enumerate(tables):
-                    doc.add_paragraph(f"Table {i+1}:")
+                    doc.add_paragraph(f"Table {i+1} (Accuracy: {table.accuracy:.1f}%):")
                     data = table.df.values.tolist()
-                    rows, cols = len(data), len(data[0])
-                    table_docx = doc.add_table(rows=rows, cols=cols)
-                    for r in range(rows):
-                        for c in range(cols):
-                            table_docx.cell(r, c).text = str(data[r][c])
-                    doc.add_paragraph("")
+                    if data and len(data) > 0:
+                        rows, cols = len(data), len(data[0])
+                        table_docx = doc.add_table(rows=rows, cols=cols)
+                        table_docx.style = 'Table Grid'
+                        for r in range(rows):
+                            for c in range(cols):
+                                table_docx.cell(r, c).text = str(data[r][c])
+                        doc.add_paragraph("")
                 doc.save(output_path)
+                flash(f"Successfully extracted {len(tables)} table(s)")
+            else:
+                flash("No tables found in the PDF")
         except Exception as e:
             flash(f"Table extraction failed: {e}")
 

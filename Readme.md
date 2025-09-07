@@ -61,13 +61,34 @@ python app.py
 - Upload your file, select OCR language (for images), and optionally extract tables from PDFs.
 - Wait for conversion and download your Word file.
 
+### Testing
+
+Run the test script to verify everything is working:
+
+```bash
+python test_app.py
+```
+
+This will test the health endpoint and main page functionality.
+
 ---
+
+## Recent Improvements
+
+- ✅ **Fixed Windows compatibility** - Removed problematic `python-magic` dependency
+- ✅ **Enhanced error handling** - Better error messages and fallback mechanisms
+- ✅ **Improved PDF conversion** - Automatic fallback from direct conversion to OCR
+- ✅ **Better text file support** - Handles different encodings automatically
+- ✅ **Enhanced table extraction** - Shows accuracy percentages and better formatting
+- ✅ **Added health endpoint** - `/health` for monitoring application status
+- ✅ **Better user feedback** - More informative success/error messages
 
 ## Notes
 
 - **OCR is slower** and may not be 100% accurate, especially for complex layouts.
 - **Table extraction** is experimental and may not work for all PDFs.
 - Uploaded and converted files are deleted after download for privacy.
+- **Windows users**: Tesseract OCR path may need configuration in `app.py` if not in PATH.
 
 ---
 
